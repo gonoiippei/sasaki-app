@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { loadAllDocuments } from "@/lib/search";
-import { askSasakiWithGemini } from "@/lib/gemini";
+import { askSasakiWithClaude } from "@/lib/claude";
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,7 +13,6 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Load all Sasaki data as personality context
     const allDocs = loadAllDocuments();
     if (allDocs.length === 0) {
       return new Response(
@@ -22,12 +21,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const sasakiData = allDocs
-      .map((d) => d.content)
-      .join("\n\n---\n\n");
+    const sasakiData = allDocs.map((d) => d.content).join("\n\n---\n\n");
 
-    // Stream response from Gemini
-    const stream = await askSasakiWithGemini(question, sasakiData);
+    const stream = await askSasakiWithClaude(question, sasakiData);
 
     return new Response(stream, {
       headers: {
@@ -38,16 +34,6 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "エラーが発生しました";
-
-    if (message.includes("API_KEY") || message.includes("api key")) {
-      return new Response(
-        JSON.stringify({
-          error: "Gemini APIキーが設定されていません。",
-        }),
-        { status: 503, headers: { "Content-Type": "application/json" } }
-      );
-    }
-
     return new Response(JSON.stringify({ error: message }), {
       status: 500,
       headers: { "Content-Type": "application/json" },

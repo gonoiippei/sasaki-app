@@ -1,6 +1,8 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import Anthropic from "@anthropic-ai/sdk";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+const client = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
+});
 
 const SYSTEM_PROMPT = `あなたは「佐々木」という人物になりきって回答してください。
 
@@ -19,25 +21,30 @@ const SYSTEM_PROMPT = `あなたは「佐々木」という人物になりきっ
 - 佐々木のデータに直接書かれていないテーマでも、佐々木ならこう考えるだろうという推論で回答する
 - 回答は200〜400文字程度にまとめる`;
 
-export async function askSasakiWithGemini(
+export async function askSasakiWithClaude(
   question: string,
   sasakiData: string
 ): Promise<ReadableStream<Uint8Array>> {
-  const model = genAI.getGenerativeModel({
-    model: process.env.GEMINI_MODEL || "gemini-1.5-flash",
-    systemInstruction: SYSTEM_PROMPT + "\n\n【佐々木の過去の発言データ】\n" + sasakiData,
+  const systemContent =
+    SYSTEM_PROMPT + "\n\n【佐々木の過去の発言データ】\n" + sasakiData;
+
+  const stream = await client.messages.stream({
+    model: "claude-sonnet-4-20250514",
+    max_tokens: 1024,
+    system: systemContent,
+    messages: [{ role: "user", content: question }],
   });
 
-  const result = await model.generateContentStream(question);
-
   const encoder = new TextEncoder();
-  const stream = new ReadableStream<Uint8Array>({
+  return new ReadableStream<Uint8Array>({
     async start(controller) {
       try {
-        for await (const chunk of result.stream) {
-          const text = chunk.text();
-          if (text) {
-            controller.enqueue(encoder.encode(text));
+        for await (const event of stream) {
+          if (
+            event.type === "content_block_delta" &&
+            event.delta.type === "text_delta"
+          ) {
+            controller.enqueue(encoder.encode(event.delta.text));
           }
         }
         controller.close();
@@ -46,6 +53,4 @@ export async function askSasakiWithGemini(
       }
     },
   });
-
-  return stream;
 }
