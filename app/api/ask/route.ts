@@ -1,49 +1,56 @@
-import { NextRequest, NextResponse } from "next/server";
-import { searchDocuments, loadAllDocuments } from "@/lib/search";
+import { NextRequest } from "next/server";
+import { loadAllDocuments } from "@/lib/search";
+import { askSasakiWithGemini } from "@/lib/gemini";
 
 export async function POST(request: NextRequest) {
   try {
     const { question } = await request.json();
 
     if (!question || typeof question !== "string") {
-      return NextResponse.json(
-        { error: "質問を入力してください" },
-        { status: 400 }
+      return new Response(JSON.stringify({ error: "質問を入力してください" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // Load all Sasaki data as personality context
+    const allDocs = loadAllDocuments();
+    if (allDocs.length === 0) {
+      return new Response(
+        JSON.stringify({ error: "佐々木のデータがまだありません。" }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
 
-    // Search for relevant documents
-    const results = searchDocuments(question, 3);
+    const sasakiData = allDocs
+      .map((d) => d.content)
+      .join("\n\n---\n\n");
 
-    if (results.length > 0) {
-      const passages = results.map((r) => r.content.trim());
-      return NextResponse.json({
-        found: true,
-        passages,
-        message: `佐々木はこんなことを言っていました：`,
-      });
-    }
+    // Stream response from Gemini
+    const stream = await askSasakiWithGemini(question, sasakiData);
 
-    // If no keyword match, return a random document
-    const allDocs = loadAllDocuments();
-    if (allDocs.length === 0) {
-      return NextResponse.json({
-        found: false,
-        passages: [],
-        message: "佐々木のデータがまだありません。",
-      });
-    }
-
-    const random = allDocs[Math.floor(Math.random() * allDocs.length)];
-    return NextResponse.json({
-      found: false,
-      passages: [random.content.trim()],
-      message:
-        "その質問にぴったりの発言は見つかりませんでしたが、佐々木はこんなことも言っていました：",
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "text/plain; charset=utf-8",
+        "Transfer-Encoding": "chunked",
+      },
     });
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "エラーが発生しました";
-    return NextResponse.json({ error: message }, { status: 500 });
+
+    if (message.includes("API_KEY") || message.includes("api key")) {
+      return new Response(
+        JSON.stringify({
+          error: "Gemini APIキーが設定されていません。",
+        }),
+        { status: 503, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    return new Response(JSON.stringify({ error: message }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 }

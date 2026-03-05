@@ -1,43 +1,53 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
-
-interface AskResponse {
-  found: boolean;
-  passages: string[];
-  message: string;
-  error?: string;
-}
 
 export default function AskPage() {
   const [question, setQuestion] = useState("");
-  const [result, setResult] = useState<AskResponse | null>(null);
+  const [answer, setAnswer] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const abortRef = useRef<AbortController | null>(null);
 
   const handleAsk = async () => {
     if (!question.trim()) return;
 
     setIsLoading(true);
-    setResult(null);
+    setAnswer("");
     setError("");
+
+    abortRef.current = new AbortController();
 
     try {
       const res = await fetch("/api/ask", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question }),
+        signal: abortRef.current.signal,
       });
 
-      const data = await res.json();
-
       if (!res.ok) {
+        const data = await res.json();
         throw new Error(data.error || "エラーが発生しました");
       }
 
-      setResult(data);
+      const reader = res.body?.getReader();
+      if (!reader) throw new Error("ストリームを取得できません");
+
+      const decoder = new TextDecoder();
+      let accumulated = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const text = decoder.decode(value, { stream: true });
+        accumulated += text;
+        setAnswer(accumulated);
+      }
     } catch (err) {
+      if (err instanceof Error && err.name === "AbortError") return;
       setError(
         err instanceof Error ? err.message : "エラーが発生しました"
       );
@@ -90,7 +100,7 @@ export default function AskPage() {
               disabled={isLoading || !question.trim()}
               className="bg-yellow-600 hover:bg-yellow-500 disabled:bg-gray-700 disabled:text-gray-500 text-black font-bold px-6 py-3 rounded-lg transition-colors self-end"
             >
-              {isLoading ? "検索中..." : "聞いてみる"}
+              {isLoading ? "考え中..." : "聞いてみる"}
             </button>
           </div>
         </div>
@@ -103,7 +113,7 @@ export default function AskPage() {
         )}
 
         {/* Answer */}
-        {result && (
+        {(answer || isLoading) && (
           <div className="animate-fade-in">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-500 to-yellow-700 flex items-center justify-center flex-shrink-0">
@@ -120,38 +130,20 @@ export default function AskPage() {
               </span>
             </div>
 
-            <p className="text-gray-400 text-sm mb-4">{result.message}</p>
-
-            <div className="space-y-4">
-              {result.passages.map((passage, i) => (
-                <div
-                  key={i}
-                  className="bg-gray-800/50 border border-gray-700 rounded-lg px-6 py-4"
-                >
-                  <p className="text-gray-200 whitespace-pre-wrap leading-relaxed">
-                    {passage}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Loading */}
-        {isLoading && (
-          <div className="animate-fade-in flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-500 to-yellow-700 flex items-center justify-center flex-shrink-0">
-              <svg
-                className="w-6 h-6 text-black"
-                fill="currentColor"
-                viewBox="0 0 24 24"
+            <div className="bg-gray-800/50 border border-gray-700 rounded-lg px-6 py-4">
+              <p
+                className={`text-gray-200 whitespace-pre-wrap leading-relaxed ${
+                  isLoading && !answer ? "typing-cursor" : ""
+                }`}
               >
-                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-              </svg>
+                {answer || ""}
+              </p>
+              {isLoading && (
+                <span className="inline-block mt-2 text-yellow-500 text-sm animate-pulse">
+                  佐々木が考えています...
+                </span>
+              )}
             </div>
-            <span className="text-yellow-500 animate-pulse">
-              佐々木の発言を探しています...
-            </span>
           </div>
         )}
       </main>
