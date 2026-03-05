@@ -24,7 +24,7 @@ export async function askSasakiWithGemini(
   sasakiData: string
 ): Promise<ReadableStream<Uint8Array>> {
   const model = genAI.getGenerativeModel({
-    model: "gemini-2.0-flash",
+    model: process.env.GEMINI_MODEL || "gemini-1.5-flash",
     systemInstruction: SYSTEM_PROMPT + "\n\n【佐々木の過去の発言データ】\n" + sasakiData,
   });
 
