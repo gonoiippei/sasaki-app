@@ -3,27 +3,27 @@ import Link from "next/link";
 function SasakiLogo({ className = "" }: { className?: string }) {
   return (
     <svg
-      viewBox="0 0 300 200"
+      viewBox="0 0 300 220"
       className={className}
-      fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      {/* Lightning bolt S - YAZAWA Z parody */}
+      {/* Angular S shape - thick stroke like YAZAWA's Z */}
       <path
-        d="M190 15 L110 15 L140 80 L95 80 L110 185 L190 185 L160 120 L205 120 Z"
+        d="M 210 20 L 90 20 L 90 88 L 210 88 L 210 155 L 90 155"
         fill="none"
         stroke="#c41e1e"
-        strokeWidth="6"
-        strokeLinejoin="bevel"
+        strokeWidth="18"
+        strokeLinejoin="miter"
+        strokeLinecap="square"
       />
       {/* S.SASAKI text */}
       <text
         x="150"
-        y="178"
+        y="205"
         textAnchor="middle"
         fontFamily="'Arial Black', 'Impact', sans-serif"
         fontWeight="900"
-        fontSize="36"
+        fontSize="38"
         fill="#c41e1e"
         letterSpacing="4"
         fontStyle="italic"
@@ -32,10 +32,10 @@ function SasakiLogo({ className = "" }: { className?: string }) {
       </text>
       {/* ® mark */}
       <text
-        x="268"
-        y="158"
+        x="272"
+        y="195"
         fontFamily="Arial, sans-serif"
-        fontSize="12"
+        fontSize="14"
         fill="#c41e1e"
       >
         ®
@@ -56,7 +56,7 @@ export default function Home() {
       </div>
 
       {/* Title */}
-      <h1 className="animate-fade-in-delay text-xl md:text-3xl font-bold text-center leading-relaxed mb-4 relative z-10">
+      <h1 className="animate-fade-in-delay text-xl md:text-3xl font-bold text-center leading-relaxed mb-10 relative z-10">
         <span className="text-gray-400">ボクはいいんだけど、</span>
         <br />
         <span className="text-red-600 text-4xl md:text-6xl tracking-[0.2em] font-black italic">
@@ -65,11 +65,6 @@ export default function Home() {
         <br />
         <span className="text-gray-400">がなんて言うかな？</span>
       </h1>
-
-      {/* Subtitle */}
-      <p className="animate-fade-in-delay2 text-gray-600 text-sm md:text-base mb-12 text-center relative z-10">
-        佐々木の日報とメッセージを学習したAIが、佐々木として回答します
-      </p>
 
       {/* CTA Button */}
       <Link
