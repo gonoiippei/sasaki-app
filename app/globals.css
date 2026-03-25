@@ -24,8 +24,8 @@ body {
 }
 
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 20px rgba(234, 179, 8, 0.3); }
-  50% { box-shadow: 0 0 40px rgba(234, 179, 8, 0.6); }
+  0%, 100% { box-shadow: 0 0 20px rgba(196, 30, 30, 0.3); }
+  50% { box-shadow: 0 0 40px rgba(196, 30, 30, 0.6); }
 }
 
 .animate-fade-in {

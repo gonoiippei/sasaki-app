@@ -71,7 +71,7 @@ export default function AskPage() {
           <Link href="/" className="text-gray-400 hover:text-white transition">
             &larr; トップに戻る
           </Link>
-          <h1 className="text-yellow-500 font-bold text-lg">
+          <h1 className="text-red-600 font-black text-lg italic tracking-wider">
             SASAKIに聞く
           </h1>
           <div className="w-20" />
@@ -91,14 +91,14 @@ export default function AskPage() {
               onChange={(e) => setQuestion(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="例：成長するにはどうすればいい？"
-              className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-yellow-500 resize-none"
+              className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-red-600 resize-none"
               rows={2}
               disabled={isLoading}
             />
             <button
               onClick={handleAsk}
               disabled={isLoading || !question.trim()}
-              className="bg-yellow-600 hover:bg-yellow-500 disabled:bg-gray-700 disabled:text-gray-500 text-black font-bold px-6 py-3 rounded-lg transition-colors self-end"
+              className="bg-red-700 hover:bg-red-600 disabled:bg-gray-700 disabled:text-gray-500 text-white font-bold px-6 py-3 rounded-lg transition-colors self-end"
             >
               {isLoading ? "考え中..." : "聞いてみる"}
             </button>
@@ -116,16 +116,10 @@ export default function AskPage() {
         {(answer || isLoading) && (
           <div className="animate-fade-in">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-500 to-yellow-700 flex items-center justify-center flex-shrink-0">
-                <svg
-                  className="w-6 h-6 text-black"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                </svg>
+              <div className="w-10 h-10 rounded-full bg-red-900/60 border border-red-700 flex items-center justify-center flex-shrink-0">
+                <span className="text-red-500 font-black text-sm italic">S</span>
               </div>
-              <span className="text-yellow-500 font-bold text-lg">
+              <span className="text-red-600 font-black text-lg italic tracking-wider">
                 SASAKI
               </span>
             </div>
@@ -139,7 +133,7 @@ export default function AskPage() {
                 {answer || ""}
               </p>
               {isLoading && (
-                <span className="inline-block mt-2 text-yellow-500 text-sm animate-pulse">
+                <span className="inline-block mt-2 text-red-500 text-sm animate-pulse">
                   佐々木が考えています...
                 </span>
               )}
