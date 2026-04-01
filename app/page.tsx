@@ -3,27 +3,26 @@ import Link from "next/link";
 function SasakiLogo({ className = "" }: { className?: string }) {
   return (
     <svg
-      viewBox="0 0 300 220"
+      viewBox="0 0 300 200"
       className={className}
       xmlns="http://www.w3.org/2000/svg"
     >
-      {/* Angular S shape - thick stroke like YAZAWA's Z */}
+      {/* Lightning bolt S - YAZAWA Z parody */}
       <path
-        d="M 210 20 L 90 20 L 90 88 L 210 88 L 210 155 L 90 155"
+        d="M190 15 L110 15 L140 80 L95 80 L110 185 L190 185 L160 120 L205 120 Z"
         fill="none"
         stroke="#c41e1e"
-        strokeWidth="18"
-        strokeLinejoin="miter"
-        strokeLinecap="square"
+        strokeWidth="6"
+        strokeLinejoin="bevel"
       />
       {/* S.SASAKI text */}
       <text
         x="150"
-        y="205"
+        y="178"
         textAnchor="middle"
         fontFamily="'Arial Black', 'Impact', sans-serif"
         fontWeight="900"
-        fontSize="38"
+        fontSize="36"
         fill="#c41e1e"
         letterSpacing="4"
         fontStyle="italic"
@@ -32,10 +31,10 @@ function SasakiLogo({ className = "" }: { className?: string }) {
       </text>
       {/* ® mark */}
       <text
-        x="272"
-        y="195"
+        x="268"
+        y="158"
         fontFamily="Arial, sans-serif"
-        fontSize="14"
+        fontSize="12"
         fill="#c41e1e"
       >
         ®
@@ -51,12 +50,12 @@ export default function Home() {
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(196,30,30,0.08)_0%,_transparent_70%)]" />
 
       {/* Logo */}
-      <div className="animate-fade-in mb-6 relative z-10">
-        <SasakiLogo className="w-64 h-44 md:w-80 md:h-56" />
+      <div className="animate-fade-in mb-4 relative z-10">
+        <SasakiLogo className="w-52 h-36 md:w-72 md:h-48" />
       </div>
 
       {/* Title */}
-      <h1 className="animate-fade-in-delay text-xl md:text-3xl font-bold text-center leading-relaxed mb-10 relative z-10">
+      <h1 className="animate-fade-in-delay text-xl md:text-3xl font-bold text-center leading-relaxed mb-6 relative z-10">
         <span className="text-gray-400">ボクはいいんだけど、</span>
         <br />
         <span className="text-red-600 text-4xl md:text-6xl tracking-[0.2em] font-black italic">
@@ -69,9 +68,9 @@ export default function Home() {
       {/* CTA Button */}
       <Link
         href="/ask"
-        className="animate-fade-in-delay2 animate-pulse-glow bg-red-700 hover:bg-red-600 text-white font-bold text-lg md:text-xl px-10 py-4 rounded-full transition-colors duration-300 shadow-lg tracking-wider relative z-10"
+        className="animate-fade-in-delay2 bg-red-700 hover:bg-red-600 text-white font-bold text-lg md:text-xl px-10 py-4 rounded-full transition-colors duration-300 shadow-lg tracking-wider relative z-10"
       >
-        SASAKIに聞く
+        SASAKIに聞いてみる？
       </Link>
     </div>
   );
