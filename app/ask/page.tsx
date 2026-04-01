@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function AskPage() {
   const [question, setQuestion] = useState("");
@@ -118,8 +119,14 @@ export default function AskPage() {
         {(answer || isLoading) && (
           <div className="animate-fade-in">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-red-900/60 border border-red-700 flex items-center justify-center flex-shrink-0">
-                <span className="text-red-500 font-black text-sm italic">S</span>
+              <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-red-700 flex-shrink-0">
+                <Image
+                  src="/img_3479_720.jpg"
+                  alt="SASAKI"
+                  width={40}
+                  height={40}
+                  className="w-full h-full object-cover"
+                />
               </div>
               <span className="text-red-600 font-black text-lg italic tracking-wider">
                 SASAKI
