@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 function SasakiLogo({ className = "" }: { className?: string }) {
   return (
@@ -49,9 +50,22 @@ export default function Home() {
       {/* Background glow */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(196,30,30,0.08)_0%,_transparent_70%)]" />
 
-      {/* Logo */}
+      {/* Photo */}
       <div className="animate-fade-in mb-4 relative z-10">
-        <SasakiLogo className="w-52 h-36 md:w-72 md:h-48" />
+        <div className="w-36 h-36 md:w-44 md:h-44 rounded-[30%] overflow-hidden border-4 border-red-800 shadow-2xl">
+          <Image
+            src="/sasaki.png"
+            alt="SASAKI"
+            width={176}
+            height={176}
+            className="w-full h-full object-cover object-top"
+          />
+        </div>
+      </div>
+
+      {/* Logo */}
+      <div className="animate-fade-in mb-2 relative z-10">
+        <SasakiLogo className="w-44 h-28 md:w-56 md:h-36" />
       </div>
 
       {/* Title */}
