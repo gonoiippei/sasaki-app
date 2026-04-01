@@ -86,7 +86,7 @@ export default function AskPage() {
         {/* Question input */}
         <div className="mb-8">
           <label className="block text-gray-400 text-sm mb-2">
-            佐々木に質問してみよう
+            SASAKIに質問してみよう
           </label>
           <div className="flex gap-3">
             <textarea
@@ -143,7 +143,7 @@ export default function AskPage() {
               </p>
               {isLoading && (
                 <span className="inline-block mt-2 text-red-500 text-sm animate-pulse">
-                  佐々木が考えています...
+                  SASAKIが考えています...
                 </span>
               )}
             </div>
