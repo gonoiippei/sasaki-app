@@ -71,8 +71,10 @@ export default function AskPage() {
           <Link href="/" className="text-gray-400 hover:text-white transition">
             &larr; トップに戻る
           </Link>
-          <h1 className="text-red-600 font-black text-lg italic tracking-wider">
-            SASAKIに聞く
+          <h1 className="text-sm md:text-base text-center">
+            <span className="text-gray-400">ボクはいいんだけど、</span>
+            <span className="text-red-600 font-black italic">SASAKI</span>
+            <span className="text-gray-400">がなんて言うかな？</span>
           </h1>
           <div className="w-20" />
         </div>
