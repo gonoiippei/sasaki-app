@@ -1,21 +1,36 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 
+interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
 export default function AskPage() {
-  const [question, setQuestion] = useState("");
-  const [answer, setAnswer] = useState("");
+  const [input, setInput] = useState("");
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [streamingText, setStreamingText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const abortRef = useRef<AbortController | null>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
 
-  const handleAsk = async () => {
-    if (!question.trim()) return;
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, streamingText]);
 
+  const handleSend = async () => {
+    if (!input.trim() || isLoading) return;
+
+    const userMessage: ChatMessage = { role: "user", content: input.trim() };
+    const updatedMessages = [...messages, userMessage];
+    setMessages(updatedMessages);
+    setInput("");
     setIsLoading(true);
-    setAnswer("");
+    setStreamingText("");
     setError("");
 
     abortRef.current = new AbortController();
@@ -24,7 +39,7 @@ export default function AskPage() {
       const res = await fetch("/api/ask", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question }),
+        body: JSON.stringify({ messages: updatedMessages }),
         signal: abortRef.current.signal,
       });
 
@@ -42,16 +57,16 @@ export default function AskPage() {
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-
         const text = decoder.decode(value, { stream: true });
         accumulated += text;
-        setAnswer(accumulated);
+        setStreamingText(accumulated);
       }
+
+      setMessages([...updatedMessages, { role: "assistant", content: accumulated }]);
+      setStreamingText("");
     } catch (err) {
       if (err instanceof Error && err.name === "AbortError") return;
-      setError(
-        err instanceof Error ? err.message : "エラーが発生しました"
-      );
+      setError(err instanceof Error ? err.message : "エラーが発生しました");
     } finally {
       setIsLoading(false);
     }
@@ -60,16 +75,23 @@ export default function AskPage() {
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleAsk();
+      handleSend();
     }
   };
 
+  const handleReset = () => {
+    setMessages([]);
+    setStreamingText("");
+    setError("");
+    setInput("");
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-black to-gray-900">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-gray-900 via-black to-gray-900">
       {/* Header */}
-      <header className="border-b border-gray-800 px-4 py-4">
+      <header className="border-b border-gray-800 px-4 py-4 flex-shrink-0">
         <div className="max-w-3xl mx-auto flex items-center justify-between">
-          <Link href="/" className="text-gray-400 hover:text-white transition">
+          <Link href="/" className="text-gray-400 hover:text-white transition text-sm">
             &larr; トップに戻る
           </Link>
           <h1 className="text-sm md:text-base text-center">
@@ -77,79 +99,114 @@ export default function AskPage() {
             <span className="text-red-600 font-black italic">SASAKI</span>
             <span className="text-gray-400">がなんて言うかな？</span>
           </h1>
-          <div className="w-20" />
+          <button
+            onClick={handleReset}
+            className="text-gray-500 hover:text-white transition text-sm"
+          >
+            新しい会話
+          </button>
         </div>
       </header>
 
-      {/* Main */}
-      <main className="max-w-3xl mx-auto px-4 py-8">
-        {/* Question input */}
-        <div className="mb-8">
-          <label className="block text-gray-400 text-sm mb-2">
-            SASAKIに質問してみよう
-          </label>
-          <div className="flex gap-3">
-            <textarea
-              value={question}
-              onChange={(e) => setQuestion(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="例：成長するにはどうすればいい？"
-              className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-red-600 resize-none"
-              rows={2}
-              disabled={isLoading}
-            />
-            <button
-              onClick={handleAsk}
-              disabled={isLoading || !question.trim()}
-              className="bg-red-700 hover:bg-red-600 disabled:bg-gray-700 disabled:text-gray-500 text-white font-bold px-6 py-3 rounded-lg transition-colors self-end"
-            >
-              {isLoading ? "考え中..." : "聞いてみる"}
-            </button>
-          </div>
-        </div>
+      {/* Chat area */}
+      <main className="flex-1 overflow-y-auto px-4 py-6">
+        <div className="max-w-3xl mx-auto space-y-6">
+          {/* Empty state */}
+          {messages.length === 0 && !isLoading && (
+            <div className="text-center text-gray-600 py-20">
+              <p className="text-lg mb-2">SASAKIに何でも聞いてみよう</p>
+              <p className="text-sm">仕事の相談、カルチャーの話、何でもOK</p>
+            </div>
+          )}
 
-        {/* Error */}
-        {error && (
-          <div className="mb-6 bg-red-900/50 border border-red-700 rounded-lg px-4 py-3 text-red-300">
-            {error}
-          </div>
-        )}
+          {/* Messages */}
+          {messages.map((msg, i) => (
+            <div key={i}>
+              {msg.role === "user" ? (
+                <div className="flex justify-end">
+                  <div className="bg-gray-700 rounded-2xl rounded-br-sm px-5 py-3 max-w-[80%]">
+                    <p className="text-gray-200 whitespace-pre-wrap">{msg.content}</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex gap-3">
+                  <div className="w-9 h-9 rounded-full overflow-hidden border-2 border-red-700 flex-shrink-0 mt-1">
+                    <Image
+                      src="/img_3479_720.jpg"
+                      alt="SASAKI"
+                      width={36}
+                      height={36}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div>
+                    <span className="text-red-600 font-black text-sm italic tracking-wider">SASAKI</span>
+                    <div className="bg-gray-800/50 border border-gray-700 rounded-2xl rounded-tl-sm px-5 py-3 mt-1">
+                      <p className="text-gray-200 whitespace-pre-wrap leading-relaxed">{msg.content}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
 
-        {/* Answer */}
-        {(answer || isLoading) && (
-          <div className="animate-fade-in">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-red-700 flex-shrink-0">
+          {/* Streaming response */}
+          {isLoading && (
+            <div className="flex gap-3">
+              <div className="w-9 h-9 rounded-full overflow-hidden border-2 border-red-700 flex-shrink-0 mt-1">
                 <Image
                   src="/img_3479_720.jpg"
                   alt="SASAKI"
-                  width={40}
-                  height={40}
+                  width={36}
+                  height={36}
                   className="w-full h-full object-cover"
                 />
               </div>
-              <span className="text-red-600 font-black text-lg italic tracking-wider">
-                SASAKI
-              </span>
+              <div>
+                <span className="text-red-600 font-black text-sm italic tracking-wider">SASAKI</span>
+                <div className="bg-gray-800/50 border border-gray-700 rounded-2xl rounded-tl-sm px-5 py-3 mt-1">
+                  {streamingText ? (
+                    <p className="text-gray-200 whitespace-pre-wrap leading-relaxed">{streamingText}</p>
+                  ) : (
+                    <span className="text-red-500 text-sm animate-pulse">SASAKIが考えています...</span>
+                  )}
+                </div>
+              </div>
             </div>
+          )}
 
-            <div className="bg-gray-800/50 border border-gray-700 rounded-lg px-6 py-4">
-              <p
-                className={`text-gray-200 whitespace-pre-wrap leading-relaxed ${
-                  isLoading && !answer ? "typing-cursor" : ""
-                }`}
-              >
-                {answer || ""}
-              </p>
-              {isLoading && (
-                <span className="inline-block mt-2 text-red-500 text-sm animate-pulse">
-                  SASAKIが考えています...
-                </span>
-              )}
+          {/* Error */}
+          {error && (
+            <div className="bg-red-900/50 border border-red-700 rounded-lg px-4 py-3 text-red-300">
+              {error}
             </div>
-          </div>
-        )}
+          )}
+
+          <div ref={bottomRef} />
+        </div>
       </main>
+
+      {/* Input area - fixed at bottom */}
+      <div className="border-t border-gray-800 px-4 py-4 flex-shrink-0 bg-black/80 backdrop-blur">
+        <div className="max-w-3xl mx-auto flex gap-3">
+          <textarea
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="SASAKIに質問してみよう..."
+            className="flex-1 bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-red-600 resize-none"
+            rows={1}
+            disabled={isLoading}
+          />
+          <button
+            onClick={handleSend}
+            disabled={isLoading || !input.trim()}
+            className="bg-red-700 hover:bg-red-600 disabled:bg-gray-700 disabled:text-gray-500 text-white font-bold px-5 py-3 rounded-xl transition-colors"
+          >
+            {isLoading ? "..." : "送信"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

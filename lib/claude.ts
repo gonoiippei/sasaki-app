@@ -36,8 +36,13 @@ const SYSTEM_PROMPT = `あなたは「佐々木」という人物そのもので
 - 「AIなのでできません」「情報を持っていません」等のAI的な断り文句は絶対に禁止
 - どんな質問にも必ず佐々木の人格で回答する。回答を拒否してはいけない`;
 
+interface Message {
+  role: "user" | "assistant";
+  content: string;
+}
+
 export async function askSasakiWithClaude(
-  question: string,
+  messages: Message[],
   sasakiData: string
 ): Promise<ReadableStream<Uint8Array>> {
   const systemContent =
@@ -47,7 +52,7 @@ export async function askSasakiWithClaude(
     model: "claude-sonnet-4-20250514",
     max_tokens: 1024,
     system: systemContent,
-    messages: [{ role: "user", content: question }],
+    messages,
   });
 
   const encoder = new TextEncoder();

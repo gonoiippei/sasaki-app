@@ -4,9 +4,9 @@ import { askSasakiWithClaude } from "@/lib/claude";
 
 export async function POST(request: NextRequest) {
   try {
-    const { question } = await request.json();
+    const { messages } = await request.json();
 
-    if (!question || typeof question !== "string") {
+    if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return new Response(JSON.stringify({ error: "質問を入力してください" }), {
         status: 400,
         headers: { "Content-Type": "application/json" },
@@ -16,14 +16,14 @@ export async function POST(request: NextRequest) {
     const allDocs = loadAllDocuments();
     if (allDocs.length === 0) {
       return new Response(
-        JSON.stringify({ error: "佐々木のデータがまだありません。" }),
+        JSON.stringify({ error: "SASAKIのデータがまだありません。" }),
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
 
     const sasakiData = allDocs.map((d) => d.content).join("\n\n---\n\n");
 
-    const stream = await askSasakiWithClaude(question, sasakiData);
+    const stream = await askSasakiWithClaude(messages, sasakiData);
 
     return new Response(stream, {
       headers: {
