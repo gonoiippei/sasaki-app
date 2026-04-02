@@ -124,7 +124,7 @@ export default function AskPage() {
             <div key={i}>
               {msg.role === "user" ? (
                 <div className="flex justify-end">
-                  <div className="bg-gray-700 rounded-2xl rounded-br-sm px-5 py-3 max-w-[80%]">
+                  <div className="bg-gray-700 rounded-2xl rounded-br-sm px-5 py-3">
                     <p className="text-gray-200 whitespace-pre-wrap">{msg.content}</p>
                   </div>
                 </div>
