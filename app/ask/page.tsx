@@ -64,6 +64,8 @@ export default function AskPage() {
 
       setMessages([...updatedMessages, { role: "assistant", content: accumulated }]);
       setStreamingText("");
+      // Count answer
+      fetch("/api/stats", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "answer" }) }).catch(() => {});
     } catch (err) {
       if (err instanceof Error && err.name === "AbortError") return;
       setError(err instanceof Error ? err.message : "エラーが発生しました");

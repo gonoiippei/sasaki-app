@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import StatsCounter from "@/components/StatsCounter";
 
 function SasakiLogo({ className = "" }: { className?: string }) {
   return (
@@ -86,6 +87,9 @@ export default function Home() {
       >
         SASAKIに聞いてみる？
       </Link>
+
+      {/* Stats */}
+      <StatsCounter />
     </div>
   );
 }
